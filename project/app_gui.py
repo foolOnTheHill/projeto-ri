@@ -128,8 +128,8 @@ class App(Frame):
         results = []
 
         for movie in all_movies:
-            movie_descriptons = movie.split('\n')
-            movie = movie_descriptons[2] + '\n' + movie_descriptons[3]
+            start = movie.find('Title')
+            movie = movie[start:]
 
             msg = bmsg + movie
             reply = True if buttonbox(msg, choices=choices) == "Yes" else False
