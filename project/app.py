@@ -115,6 +115,8 @@ def rank_documents(evaluated_docs, evaluation, docs_to_rank):
     for i in xrange(len(scores)):
         if scores[i] == True:
             recommend.append(docs_to_rank[i])
+            if len(recommend) == 10:
+                break
 
     return recommend
 

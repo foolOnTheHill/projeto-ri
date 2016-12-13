@@ -1,8 +1,10 @@
 from Tkinter import *
+from easygui import *
 import tkMessageBox
 from ScrolledText import ScrolledText
 from utils import MovieTime
 import app
+import numpy as np
 
 class App(Frame):
     def __init__(self, master=None):
@@ -56,9 +58,33 @@ class App(Frame):
 
         self.search_in_button = Button(self, text="Search", width=30, command=self.search_cmd)
         self.search_in_button.grid(row=9, column=2, padx=(0, 50), pady=(30, 20))
+
+        self.recommend_in_button = Button(self, text="Recommend", width=30, command=self.recommend_cmd)
+        self.recommend_in_button.grid(row=10, column=2, padx=(0, 50), pady=(30, 20))        
             
     def key_press(self, event):
         self.search_cmd()
+
+    def results_window(self, docs):
+        # Create results window
+        results_window = Toplevel(self)
+        results_window.resizable(width=False, height=False)
+        results_window.wm_title(str(len(docs)) + " Results")
+        results_window.focus_set()
+        
+        text = ScrolledText(results_window, width=60, height=40)
+        text.grid(padx=20, pady=20)
+
+        docs_str = ""
+
+        for doc in docs:
+            docs_str += doc + '\n\n'
+
+        docs_str = docs_str[:len(docs_str)-2]
+
+        text.insert(END, docs_str)
+
+        text.config(state=DISABLED)
 
     def search_cmd(self):
         query = {}
@@ -87,25 +113,34 @@ class App(Frame):
             else:
                 docs = app.search(query)
 
-            # Create results window
-            results_window = Toplevel(self)
-            results_window.resizable(width=False, height=False)
-            results_window.wm_title(str(len(docs)) + " Results")
-            results_window.focus_set()
-            
-            text = ScrolledText(results_window, width=60, height=40)
-            text.grid(padx=20, pady=20)
+            print(docs)
+            self.results_window(docs)
 
-            docs_str = ""
 
-            for doc in docs:
-                docs_str += doc + '\n\n'
+    def recommend_cmd(self):
+        evaluate_docs, docs_to_rank = app.split_documents()
+        all_movies = app.get_documents(evaluate_docs)
 
-            docs_str = docs_str[:len(docs_str)-2]
+        choices = ["Yes", "No"]
+        bmsg ="Do you like this movie?\n\n"
+        title = "Movies Survey"
+        
+        results = []
 
-            text.insert(END, docs_str)
+        for movie in all_movies:
+            movie_descriptons = movie.split('\n')
+            movie = movie_descriptons[2] + '\n' + movie_descriptons[3]
 
-            text.config(state=DISABLED)
+            msg = bmsg + movie
+            reply = True if buttonbox(msg, choices=choices) == "Yes" else False
+
+            results.append(reply)
+
+        recommended_docs = app.rank_documents(evaluate_docs, results, docs_to_rank)
+        docs = app.get_documents(recommended_docs)
+        self.results_window(docs)
+
+        return
 
 
 if __name__ == '__main__':
