@@ -65,7 +65,7 @@ class App(Frame):
     def key_press(self, event):
         self.search_cmd()
 
-    def results_window(self, docs):
+    def results_window(self, docs, show_internal_info=True):
         # Create results window
         results_window = Toplevel(self)
         results_window.resizable(width=False, height=False)
@@ -78,6 +78,10 @@ class App(Frame):
         docs_str = ""
 
         for doc in docs:
+            if not show_internal_info:
+                start = doc.find('Title')
+                doc = doc[start:]
+
             docs_str += doc + '\n\n'
 
         docs_str = docs_str[:len(docs_str)-2]
@@ -138,7 +142,7 @@ class App(Frame):
 
         recommended_docs = app.rank_documents(evaluate_docs, results, docs_to_rank)
         docs = app.get_documents(recommended_docs)
-        self.results_window(docs)
+        self.results_window(docs, False)
 
         return
 
